@@ -54,6 +54,7 @@ int currentconsumption;
 int currentconsumptionkWh;
 
 void watchdogHandler() {
+  Particle.publish("watchdog", "Watchdog triggered reset");
   System.reset(RESET_NO_WAIT);
 }
 
@@ -70,13 +71,15 @@ void setup() {
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
 
-  wd = new ApplicationWatchdog(20000, watchdogHandler, 1536);
+  // configure the watchdog
+  wd = new ApplicationWatchdog(60000, watchdogHandler, 1536);
 }
 
 // for SML protocol see http://www.schatenseite.de/2016/05/30/smart-message-language-stromzahler-auslesen/
 
 void loop() {
   
+  // checkin with watchdog
   ApplicationWatchdog::checkin();
   
   switch(currentState) {

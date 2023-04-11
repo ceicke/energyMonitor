@@ -39,6 +39,7 @@ int currentconsumption;
 int currentconsumptionkWh;
 
 void watchdogHandler() {
+  Particle.publish("watchdog", "Watchdog triggered reset");
   System.reset(RESET_NO_WAIT);
 }
 
@@ -55,6 +56,7 @@ void setup() {
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
 
+  // configure the watchdog
   wd = new ApplicationWatchdog(60000, watchdogHandler, 1536);
 }
 
@@ -62,6 +64,7 @@ void setup() {
 
 void loop() {
   
+  // checkin with watchdog
   ApplicationWatchdog::checkin();
   
   switch(currentState) {
