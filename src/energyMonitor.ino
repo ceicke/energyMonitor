@@ -55,7 +55,7 @@ void setup() {
 
 void loop() {
   
-  switch (currentState) {
+  switch(currentState) {
     case 0:
       // look for start sequence
       findStartSequence();
@@ -91,12 +91,12 @@ void serialDebug() {
 void findStartSequence() {
   if (Serial1.available()) {
     inByte = Serial1.read();
-    if (inByte == startSequence[startIndex]) {
+    if(inByte == startSequence[startIndex]) {
       // set smlMessage element at position 0,1,2 to inByte value
       smlMessage[startIndex] = inByte;
       startIndex =  (startIndex +1) %1000;
       // all start sequence values have been identified
-      if (startIndex == sizeof(startSequence)) {
+      if(startIndex == sizeof(startSequence)) {
         // go to next case
         currentState = 1;
         // set start index to last position to avoid rerunning the first numbers in end sequence search
@@ -117,9 +117,9 @@ void findStopSequence() {
     smlMessage[smlIndex] = inByte;
     smlIndex++;
 
-    if (inByte == stopSequence[stopIndex]) {
+    if(inByte == stopSequence[stopIndex]) {
       stopIndex++;
-      if (stopIndex == sizeof(stopSequence)) {
+      if(stopIndex == sizeof(stopSequence)) {
         currentState = 2;
         stopIndex = 0;
       }
@@ -140,10 +140,10 @@ void findPowerSequence() {
     // set temp variable to 0,1,2 element in extracted SML message
     temp = smlMessage[x];
     // compare with power sequence
-    if (temp == powerSequence[startIndex]) {
+    if(temp == powerSequence[startIndex]) {
       startIndex = (startIndex + 1) % 1000;
        // if complete sequence is found
-      if (startIndex == sizeof(powerSequence)) {
+      if(startIndex == sizeof(powerSequence)) {
         // read the next 4 bytes (the actual power value)
         for(int y = 0; y< 4; y++) {
           // store into power array
@@ -167,9 +167,9 @@ void findConsumptionSequence() {
   startIndex = 0;
   for(unsigned int x = 0; x < sizeof(smlMessage); x++) {
     temp = smlMessage[x];
-    if (temp == consumptionSequence[startIndex]) {
+    if(temp == consumptionSequence[startIndex]) {
       startIndex = (startIndex + 1) % 1000;
-      if (startIndex == sizeof(consumptionSequence)) {
+      if(startIndex == sizeof(consumptionSequence)) {
         for(int y = 0; y< 8; y++) {
           //hier muss für die folgenden 8 Bytes hoch gezählt werden
           consumption[y] = smlMessage[x+y+1];
