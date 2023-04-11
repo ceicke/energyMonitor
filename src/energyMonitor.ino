@@ -5,6 +5,7 @@ const int UART_TX_PIN = TX;
 const unsigned long BAUD_RATE = 9600;
 
 SerialLogHandler logHandler;
+ApplicationWatchdog *wd;
 
 // byte to store the serial buffer
 byte inByte;
@@ -37,6 +38,10 @@ int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
 
+void watchdogHandler() {
+  System.reset(RESET_NO_WAIT);
+}
+
 void setup() {
   // initial states
   currentState = 0;
@@ -49,11 +54,15 @@ void setup() {
   
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
+
+  wd = new ApplicationWatchdog(60000, watchdogHandler, 1536);
 }
 
 // for SML protocol see http://www.schatenseite.de/2016/05/30/smart-message-language-stromzahler-auslesen/
 
 void loop() {
+  
+  ApplicationWatchdog::checkin();
   
   switch(currentState) {
     case 0:
