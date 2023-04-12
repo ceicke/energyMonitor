@@ -67,6 +67,7 @@ void setup() {
   // define our cloud variables
   Particle.variable("currentpower", currentpower);
   Particle.variable("totalconsumption", currentconsumption);
+  Particle.variable("curren stage", currentState);
   
   // start listening on the wire
   Serial1.begin(BAUD_RATE);

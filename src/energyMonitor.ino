@@ -51,7 +51,8 @@ void setup() {
 
   // define our cloud variables
   Particle.variable("currentpower", currentpower);
-  Particle.variable("totalconsumption", currentconsumption);
+  // Particle.variable("totalconsumption", currentconsumption);
+  // Particle.variable("curren stage", currentState);
   
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
@@ -157,19 +158,20 @@ void findPowerSequence() {
        // if complete sequence is found
       if(startIndex == sizeof(powerSequence)) {
         // read the next 4 bytes (the actual power value)
-        for(int y = 0; y< 4; y++) {
+        for(int y = 0; y < 4; y++) {
           // store into power array
           powerArray[y] = smlMessage[x+y+1];
         }
         // go to next state
-        currentState = 3;
+        currentState = 4;
         startIndex = 0;
       }
     } else {
       startIndex = 0;
     }
   }
-  currentpower = (powerArray[0] << 24 | powerArray[1] << 16 | powerArray[2] << 8 | powerArray[3]); //merge 4 bytes into single variable to calculate power value
+  // merge 4 bytes into single variable to calculate power value
+  currentpower = (powerArray[0] << 24 | powerArray[1] << 16 | powerArray[2] << 8 | powerArray[3]); 
 }
 
 
@@ -182,8 +184,7 @@ void findConsumptionSequence() {
     if(temp == consumptionSequence[startIndex]) {
       startIndex = (startIndex + 1) % 1000;
       if(startIndex == sizeof(consumptionSequence)) {
-        for(int y = 0; y< 8; y++) {
-          //hier muss für die folgenden 8 Bytes hoch gezählt werden
+        for(int y = 0; y < 8; y++) {
           consumption[y] = smlMessage[x+y+1];
         }
         currentState = 4;
@@ -197,13 +198,13 @@ void findConsumptionSequence() {
   // combine and turn 8 bytes into one variable
   currentconsumption = (consumption[0] << 56 | consumption[1] << 48 | consumption[2] << 40 | consumption[32] | consumption[4] << 24 | consumption[5] << 16 | consumption[6] << 8 | consumption[7]);
   // 10.000 impulses per kWh
-  currentconsumptionkWh = currentconsumption/10000;
+  currentconsumptionkWh = currentconsumption / 10000;
 }
 
 
 void publishMessage() {
   Particle.publish("currentpower", String(currentpower));
-  Particle.publish("totalconsumption", String(currentconsumptionkWh));
+  // Particle.publish("totalconsumption", String(currentconsumptionkWh));
   
   Log.info("currentpower: %d", currentpower);
   Log.info("totalconsumption: %d", currentconsumptionkWh);
