@@ -3,9 +3,9 @@
 const int UART_RX_PIN = RX;
 const int UART_TX_PIN = TX;
 const unsigned long BAUD_RATE = 9600;
+const int DELAY = 5000;
 
 SerialLogHandler logHandler;
-ApplicationWatchdog *wd;
 
 // byte to store the serial buffer
 byte inByte;
@@ -38,11 +38,6 @@ int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
 
-void watchdogHandler() {
-  Particle.publish("watchdog", "Watchdog triggered reset");
-  System.reset(RESET_NO_WAIT);
-}
-
 void setup() {
   // initial states
   currentState = 0;
@@ -56,18 +51,12 @@ void setup() {
   
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
-
-  // configure the watchdog
-  wd = new ApplicationWatchdog(60000, watchdogHandler, 1536);
 }
 
 // for SML protocol see http://www.schatenseite.de/2016/05/30/smart-message-language-stromzahler-auslesen/
 
 void loop() {
-  
-  // checkin with watchdog
-  ApplicationWatchdog::checkin();
-  
+    
   switch(currentState) {
     case 0:
       // look for start sequence
@@ -88,6 +77,8 @@ void loop() {
     case 4:
       // publish our findings to the cloud
       publishMessage();
+      // getting the data only every 5 seconds or so is good enough for us
+      delay(DELAY);
       break;
   }
 }
