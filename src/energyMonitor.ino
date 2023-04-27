@@ -56,7 +56,6 @@ void setup() {
   // define our cloud variables
   Particle.variable("currentpower", currentpower);
   // Particle.variable("totalconsumption", currentconsumption);
-  Particle.variable("curren stage", currentState);
 
   // setup watchdog
   setupWatchdog();
