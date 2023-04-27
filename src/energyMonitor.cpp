@@ -5,7 +5,9 @@
 #line 1 "/Users/christoph.eicke/Development/energyMonitor/src/energyMonitor.ino"
 #include "Particle.h"
 
+void setupWatchdog();
 void setup();
+int cloudReset(String command);
 void loop();
 void serialDebug();
 void findStartSequence();
@@ -52,6 +54,15 @@ int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
 
+// introduce a watchdog timer that resets the device after 30s
+void setupWatchdog() {
+  Watchdog.init(WatchdogConfiguration().timeout(30s));
+  Watchdog.onExpired([]() {
+    System.reset();
+  });
+  Watchdog.start();
+}
+
 void setup() {
   // initial states
   currentState = 0;
@@ -61,10 +72,22 @@ void setup() {
   // define our cloud variables
   Particle.variable("currentpower", currentpower);
   // Particle.variable("totalconsumption", currentconsumption);
-  // Particle.variable("curren stage", currentState);
+  Particle.variable("curren stage", currentState);
+
+  // setup watchdog
+  setupWatchdog();
   
   // start listening on the wire
   Serial1.begin(BAUD_RATE);
+
+  // cloud reset function
+  Particle.function("cloudReset", cloudReset);
+}
+
+// the cloud reset function that simply resets the device
+int cloudReset(String command) {
+  System.reset(RESET_NO_WAIT);  
+  return 0;
 }
 
 // for SML protocol see http://www.schatenseite.de/2016/05/30/smart-message-language-stromzahler-auslesen/
@@ -91,6 +114,8 @@ void loop() {
     case 4:
       // publish our findings to the cloud
       publishMessage();
+      // tell watchdog we are alive
+      Watchdog.refresh();
       // getting the data only every 5 seconds or so is good enough for us
       delay(DELAY);
       break;
@@ -112,7 +137,7 @@ void findStartSequence() {
     if(inByte == startSequence[startIndex]) {
       // set smlMessage element at position 0,1,2 to inByte value
       smlMessage[startIndex] = inByte;
-      startIndex =  (startIndex +1) %1000;
+      startIndex = (startIndex + 1) % 1000;
       // all start sequence values have been identified
       if(startIndex == sizeof(startSequence)) {
         // go to next case
@@ -154,7 +179,7 @@ void findPowerSequence() {
   startIndex = 0;
   
   // for as long there are element in the exctracted SML message
-  for(int x = 0; x < sizeof(smlMessage); x++) { 
+  for(unsigned int x = 0; x < sizeof(smlMessage); x++) { 
     // set temp variable to 0,1,2 element in extracted SML message
     temp = smlMessage[x];
     // compare with power sequence
@@ -212,7 +237,7 @@ void publishMessage() {
   // Particle.publish("totalconsumption", String(currentconsumptionkWh));
   
   Log.info("currentpower: %d", currentpower);
-  Log.info("totalconsumption: %d", currentconsumptionkWh);
+  //Log.info("totalconsumption: %d", currentconsumptionkWh);
 
   // clear the buffers
   memset(smlMessage, 0, sizeof(smlMessage));
