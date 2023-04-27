@@ -5,10 +5,11 @@
 #line 1 "/Users/christoph.eicke/Development/energyMonitor/src/energyMonitor.ino"
 #include "Particle.h"
 
-void setupWatchdog();
 void setup();
 int cloudReset(String command);
+void setupWatchdog();
 void loop();
+int getCurrentDelay();
 void serialDebug();
 void findStartSequence();
 void findStopSequence();
@@ -19,7 +20,8 @@ void publishMessage();
 const int UART_RX_PIN = RX;
 const int UART_TX_PIN = TX;
 const unsigned long BAUD_RATE = 9600;
-const int DELAY = 5000;
+const int DAYTIME_DELAY = 20;
+const int NIGHTTIME_DELAY = 60 * 5;
 
 SerialLogHandler logHandler;
 
@@ -54,14 +56,6 @@ int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
 
-// introduce a watchdog timer that resets the device after 30s
-void setupWatchdog() {
-  Watchdog.init(WatchdogConfiguration().timeout(30s));
-  Watchdog.onExpired([]() {
-    System.reset();
-  });
-  Watchdog.start();
-}
 
 void setup() {
   // initial states
@@ -72,7 +66,6 @@ void setup() {
   // define our cloud variables
   Particle.variable("currentpower", currentpower);
   // Particle.variable("totalconsumption", currentconsumption);
-  Particle.variable("curren stage", currentState);
 
   // setup watchdog
   setupWatchdog();
@@ -90,10 +83,17 @@ int cloudReset(String command) {
   return 0;
 }
 
-// for SML protocol see http://www.schatenseite.de/2016/05/30/smart-message-language-stromzahler-auslesen/
+// introduce a watchdog timer that resets the device after 30s
+void setupWatchdog() {
+  Watchdog.init(WatchdogConfiguration().timeout(30s));
+  Watchdog.onExpired([]() {
+    System.reset();
+  });
+  Watchdog.start();
+}
 
-void loop() {
-    
+
+void loop() {    
   switch(currentState) {
     case 0:
       // look for start sequence
@@ -116,11 +116,22 @@ void loop() {
       publishMessage();
       // tell watchdog we are alive
       Watchdog.refresh();
-      // getting the data only every 5 seconds or so is good enough for us
-      delay(DELAY);
+      // delay now to throttle ourselves
+      delay(getCurrentDelay());
       break;
   }
 }
+
+
+int getCurrentDelay() {
+  // we delay based on the time of the day to provide different throttling
+  if(Time.hour() == 23 || Time.hour() < 6) {
+    return NIGHTTIME_DELAY;
+  } else {
+    return DAYTIME_DELAY;
+  }
+}
+
 
 void serialDebug() {
   // debug to just see if there is something on the wire
@@ -130,6 +141,7 @@ void serialDebug() {
     Log.info("%02X", inByte);
   }
 }
+
 
 void findStartSequence() {
   if (Serial1.available()) {
@@ -153,7 +165,6 @@ void findStartSequence() {
 }
 
 
-
 void findStopSequence() {
   if (Serial1.available()) {
     inByte = Serial1.read();
@@ -171,6 +182,7 @@ void findStopSequence() {
     }
   }
 }
+
 
 void findPowerSequence() {
   // temp variable to store loop search data
