@@ -3,8 +3,8 @@
 const int UART_RX_PIN = RX;
 const int UART_TX_PIN = TX;
 const unsigned long BAUD_RATE = 9600;
-const int DAYTIME_DELAY = 20;
-const int NIGHTTIME_DELAY = 60 * 5;
+const int DAYTIME_DELAY = 20 * 1000;
+const int NIGHTTIME_DELAY = 60 * 5 * 1000;
 
 SerialLogHandler logHandler;
 
