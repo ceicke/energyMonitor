@@ -38,6 +38,8 @@ int currentpower;
 int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
+// variable to see if after power on we already published the currentconsumptionkWH once
+bool publishedCurrentconsumptionkWh;
 
 
 void setup() {
@@ -46,9 +48,9 @@ void setup() {
   startIndex = 0;
   stopIndex = 0;
 
-  // define our cloud variables
+  // define our cloud variable
   Particle.variable("currentpower", currentpower);
-  // Particle.variable("totalconsumption", currentconsumption);
+  //Particle.variable("totalconsumption", currentconsumptionkWh);
 
   // setup watchdog
   setupWatchdog();
@@ -229,10 +231,13 @@ void findConsumptionSequence() {
 
 void publishMessage() {
   Particle.publish("currentpower", String(currentpower));
-  // Particle.publish("totalconsumption", String(currentconsumptionkWh));
+  //if(!publishedCurrentconsumptionkWh || (Time.hour() == 23 && Time.minute() == 55)) {
+  //  Particle.publish("totalconsumption", String(currentconsumptionkWh));
+  //  publishedCurrentconsumptionkWh = true;
+  //}
   
   Log.info("currentpower: %d", currentpower);
-  //Log.info("totalconsumption: %d", currentconsumptionkWh);
+  Log.info("totalconsumption: %d", currentconsumptionkWh);
 
   // clear the buffers
   memset(smlMessage, 0, sizeof(smlMessage));

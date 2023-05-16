@@ -2,7 +2,7 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
-#line 1 "/Users/christoph.eicke/Development/energyMonitor/src/energyMonitor.ino"
+#line 1 "/Users/ceicke/Development/particle/energyMonitor/src/energyMonitor.ino"
 #include "Particle.h"
 
 void setup();
@@ -16,12 +16,12 @@ void findStopSequence();
 void findPowerSequence();
 void findConsumptionSequence();
 void publishMessage();
-#line 3 "/Users/christoph.eicke/Development/energyMonitor/src/energyMonitor.ino"
+#line 3 "/Users/ceicke/Development/particle/energyMonitor/src/energyMonitor.ino"
 const int UART_RX_PIN = RX;
 const int UART_TX_PIN = TX;
 const unsigned long BAUD_RATE = 9600;
-const int DAYTIME_DELAY = 20;
-const int NIGHTTIME_DELAY = 60 * 5;
+const int DAYTIME_DELAY = 20 * 1000;
+const int NIGHTTIME_DELAY = 60 * 5 * 1000;
 
 SerialLogHandler logHandler;
 
@@ -55,6 +55,8 @@ int currentpower;
 int currentconsumption;
 // variable to calulate actual "Gesamtverbrauch" in kWh
 int currentconsumptionkWh;
+// variable to see if after power on we already published the currentconsumptionkWH once
+bool publishedCurrentconsumptionkWh;
 
 
 void setup() {
@@ -63,9 +65,9 @@ void setup() {
   startIndex = 0;
   stopIndex = 0;
 
-  // define our cloud variables
+  // define our cloud variable
   Particle.variable("currentpower", currentpower);
-  // Particle.variable("totalconsumption", currentconsumption);
+  //Particle.variable("totalconsumption", currentconsumptionkWh);
 
   // setup watchdog
   setupWatchdog();
@@ -246,10 +248,13 @@ void findConsumptionSequence() {
 
 void publishMessage() {
   Particle.publish("currentpower", String(currentpower));
-  // Particle.publish("totalconsumption", String(currentconsumptionkWh));
+  //if(!publishedCurrentconsumptionkWh || (Time.hour() == 23 && Time.minute() == 55)) {
+  //  Particle.publish("totalconsumption", String(currentconsumptionkWh));
+  //  publishedCurrentconsumptionkWh = true;
+  //}
   
   Log.info("currentpower: %d", currentpower);
-  //Log.info("totalconsumption: %d", currentconsumptionkWh);
+  Log.info("totalconsumption: %d", currentconsumptionkWh);
 
   // clear the buffers
   memset(smlMessage, 0, sizeof(smlMessage));
