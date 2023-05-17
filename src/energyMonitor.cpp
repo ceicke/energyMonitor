@@ -67,6 +67,8 @@ void setup() {
 
   // define our cloud variable
   Particle.variable("currentpower", currentpower);
+  Particle.variable("delay", currentpower);
+  Particle.publish("delay", String(getCurrentDelay()));
   //Particle.variable("totalconsumption", currentconsumptionkWh);
 
   // setup watchdog
@@ -77,6 +79,9 @@ void setup() {
 
   // cloud reset function
   Particle.function("cloudReset", cloudReset);
+
+  // set correct Time zone
+  Time.zone(2);
 }
 
 // the cloud reset function that simply resets the device
@@ -85,9 +90,9 @@ int cloudReset(String command) {
   return 0;
 }
 
-// introduce a watchdog timer that resets the device after 30s
+// introduce a watchdog timer that resets the device after NIGHTTIME_DELAY + 5
 void setupWatchdog() {
-  Watchdog.init(WatchdogConfiguration().timeout(30s));
+  Watchdog.init(WatchdogConfiguration().timeout(NIGHTTIME_DELAY + 5));
   Watchdog.onExpired([]() {
     System.reset();
   });
