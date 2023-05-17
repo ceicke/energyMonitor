@@ -50,8 +50,6 @@ void setup() {
 
   // define our cloud variable
   Particle.variable("currentpower", currentpower);
-  Particle.variable("delay", currentpower);
-  Particle.publish("delay", String(getCurrentDelay()));
   //Particle.variable("totalconsumption", currentconsumptionkWh);
 
   // setup watchdog
