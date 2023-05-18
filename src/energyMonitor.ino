@@ -71,9 +71,9 @@ int cloudReset(String command) {
   return 0;
 }
 
-// introduce a watchdog timer that resets the device after NIGHTTIME_DELAY + 5
+// introduce a watchdog timer that resets the device after NIGHTTIME_DELAY * 2
 void setupWatchdog() {
-  Watchdog.init(WatchdogConfiguration().timeout(NIGHTTIME_DELAY + 5));
+  Watchdog.init(WatchdogConfiguration().timeout(NIGHTTIME_DELAY * 2));
   Watchdog.onExpired([]() {
     System.reset();
   });
